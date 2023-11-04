@@ -160,7 +160,7 @@ cython_debug/
 .idea/
 
 # data folder with datasets
-data/
+.data/
 
 # gradio logs
 flagged/

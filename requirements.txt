@@ -1,2 +1,4 @@
-torch~=2.0.1
-gradio~=3.45.1
+pandas~=2.0.3
+gradio~=3.44.0
+spacy~=3.7.2
+torchtext~=0.16.0
