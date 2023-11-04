@@ -160,7 +160,10 @@ cython_debug/
 .idea/
 
 # data folder with datasets
-.data/
+data/
+
+# assignemnt description
+README_assignment.md
 
 # gradio logs
 flagged/

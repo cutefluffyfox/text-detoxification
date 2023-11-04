@@ -4,7 +4,7 @@ from collections import Counter
 import pandas as pd
 from torchtext.vocab import vocab
 
-from src.modules import data_manager
+from src.modules import path_manager
 
 
 PAD_TOKEN = "<PAD>"
@@ -45,10 +45,10 @@ def create_and_save_vocab(dataset, min_freq_threshold: int):
     min_freq_threshold = int(min_freq_threshold)
 
     # determine path's
-    loader = data_manager.Load(dataset, 'tokenized')
-    saver = data_manager.Save(dataset, 'vocab')
+    loader = path_manager.LoadData(dataset, 'tokenized')
+    saver = path_manager.SaveData(dataset, 'vocab')
 
-    dataframes = [loader.read_dataframe(file) for file in loader.get_all_files()]
+    dataframes = [loader.read_dataframe(file, apply_ast_to='message') for file in loader.get_all_data()]
     whole_dataset = pd.concat(dataframes)
 
     word_counter = count_words(whole_dataset)

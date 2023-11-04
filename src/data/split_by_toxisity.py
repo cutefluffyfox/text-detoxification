@@ -1,12 +1,12 @@
 import os
 import pandas as pd
-from src.modules import data_manager
+from src.modules import path_manager
 
 
 def split_by_toxicity(raw_dataset: str, toxicity_difference: float, similarity_rate: float):
     # determine path's
     cwd = os.getcwd()
-    tsv_file = data_manager.read_dir_type('raw', raw_dataset)[0]
+    tsv_file = path_manager.GradioReaders.read_dir_type('raw', raw_dataset)[0]
     dataset_path = os.path.join(cwd, 'data', 'raw', raw_dataset, tsv_file)
 
     # read raw dataset
@@ -31,7 +31,7 @@ def split_by_toxicity(raw_dataset: str, toxicity_difference: float, similarity_r
     non_tox = pd.DataFrame(ntox_queries, columns=['message', 'tox_score'])
 
     # save dataframes
-    save = data_manager.Save(raw_dataset, 'split')
+    save = path_manager.SaveData(raw_dataset, 'split')
     paths = save.save_dataframes([tox, non_tox], names=['tox.csv', 'non_tox.csv'])
 
     return (f'Queries passed: {round(100 * len(tox_queries) / df.shape[0], 2)}%\n\n'

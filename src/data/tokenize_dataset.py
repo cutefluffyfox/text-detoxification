@@ -1,13 +1,13 @@
 import spacy
 import pandas as pd
-import gradio as gr
+from gradio import Progress
 
-from src.modules import data_manager
+from src.modules import path_manager
 
 
-def tokenize_dataset(dataset: str, spacy_tokenizer: str, progress_bar: gr.Progress = gr.Progress()):
-    loader = data_manager.Load(dataset, 'split')
-    saver = data_manager.Save(dataset, 'tokenized')
+def tokenize_dataset(dataset: str, spacy_tokenizer: str, progress_bar: Progress = Progress()):
+    loader = path_manager.LoadData(dataset, 'split')
+    saver = path_manager.SaveData(dataset, 'tokenized')
 
     tokenize_fn = spacy.load(spacy_tokenizer)
 
