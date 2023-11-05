@@ -165,14 +165,16 @@ Then select device to train your model on (it's highly recommended to use cuda, 
 even on it is could take hours per epoch).
 
 P.S. On my GPU 1 minute of epoch is approximately `16000` iterations. So to make training reasonable
-I set Dataset split value to `384000` (approximately 24 minutes).
+I set Dataset split value to `384000` (approximately 24 minutes per epoch).
+
+P.P.S. My best model took 11 hours to train and at least 5 unsuccessful tries due to CUDA memory limitation
 
 ![img.png](figures/training_example.png)
 
 # Inference
 
-And final step to test model is to make inference page. Define dataset, vocab, checkpoint,
-tokenizer and max sentence size the same as in training/preprocessing steps. Chose any device
+And final step to test model is to make inference page. Chose checkpoint,
+tokenizer same as in preprocessing step and max sentence size. Chose any device
 (as inference is only for 1 sentence, it doesn't really matter in terms of speed). 
 
 Everything that really matters is to write any message in 'Textbox for inference messages' and 
