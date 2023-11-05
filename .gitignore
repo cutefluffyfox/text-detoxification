@@ -162,6 +162,9 @@ cython_debug/
 # data folder with datasets
 data/
 
+# model checkpoints folder
+checkpoints/
+
 # assignemnt description
 README_assignment.md
 

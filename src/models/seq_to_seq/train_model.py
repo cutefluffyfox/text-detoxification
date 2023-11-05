@@ -111,8 +111,11 @@ def train_validate_for_n_epochs(dataset, vocab_file, train_size, dataset_split, 
     device = device if (device_type == 'auto' or device is None) else torch.device(device_type)
 
     model = DSkBart(len(vocab), device=device).to(device)
-    # if checkpoint != 'random':
-    #     model = torch.load()
+    if checkpoint != 'random':
+        checkpoint_loader = path_manager.LoadModelCheckpoint('seq_to_seq')
+        model: DSkBart = checkpoint_loader.load_pytorch(checkpoint)
+        model.device = device
+        model = model.to(device)
 
     optimizer = Adam(model.parameters())
     criterion = nn.CrossEntropyLoss(ignore_index=vocab['<PAD>'])
@@ -134,7 +137,7 @@ def train_validate_for_n_epochs(dataset, vocab_file, train_size, dataset_split, 
             output_message += f'!! New best valid_loss found, saving model to `{save_file_name}` on epoch {epoch + 1}\n\n'
             best_valid_loss = valid_loss
 
-            model_saver.save_pytorch(model.state_dict(), save_file_name)
+            model_saver.save_pytorch(model, save_file_name)
 
     output_message += f'Training for {n_epoch} finished successfully\n'
     return output_message

@@ -71,6 +71,9 @@ class LoadModelCheckpoint(Loader):
     def load_pytorch(self, model_name: str):
         return torch.load(os.path.join(self.dir, model_name))
 
+    def load_model_dict(self, model, model_name: str):
+        return model.load_state_dict(torch.load(os.path.join(self.dir, model_name)))
+
 
 class SaveModelCheckpoint(Saver):
     def __init__(self, model_type: str, *extras):

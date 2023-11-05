@@ -2,7 +2,7 @@ import gradio as gr
 
 from src.modules.path_manager import GradioReaders
 from src.data import parse_zip, split_by_toxisity, tokenize_dataset, make_data_vocab
-from src.models.seq_to_seq import train_model
+from src.models.seq_to_seq import train_model, predict_model
 
 
 def update_dropdown(func):
@@ -24,6 +24,12 @@ def update_vocab(dataset):
 def update_intermediate_checkpoint_dropdown(*args, **kwargs):
     intermediate_choices = gr.update(choices=GradioReaders.read_dir_type('intermediate'))
     checkpoint_choices = gr.update(choices=['random'] + GradioReaders.checkpoint_readers('seq_to_seq'))
+    return intermediate_choices, checkpoint_choices
+
+
+def update_inf_checkpoint_dropdown(*args, **kwargs):
+    intermediate_choices = gr.update(choices=GradioReaders.read_dir_type('intermediate'))
+    checkpoint_choices = gr.update(choices=GradioReaders.checkpoint_readers('seq_to_seq'))
     return intermediate_choices, checkpoint_choices
 
 
@@ -95,15 +101,15 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
 
                 train_dataset = gr.Dropdown(GradioReaders.read_dir_type('intermediate'), label="Chose dataset", info="Chose what dataset to preprocess", interactive=True)
                 train_vocab = gr.Dropdown([], label='Chose vocab', info='Chose what vocab to be trained on', interactive=True)
-                train_checkpoints = gr.Dropdown(['random'], value='random', label='Checkpoints', info='Checkpoint to load model from (if `random` chosen, initialize from random)', interactive=True)
+                train_checkpoints = gr.Dropdown(['random'] + GradioReaders.checkpoint_readers('seq_to_seq'), value='random', label='Checkpoints', info='Checkpoint to load model from (if `random` chosen, initialize from random)', interactive=True)
                 update_train_btn = gr.Button('Refresh dropdown lists')
                 train_size = gr.Slider(0, 1, value=0.9, label="Train size", info="Ratio of train in dataset train/val split")
                 train_dataset_split = gr.Number(value=400000, minimum=0, label='Dataset split', info='It takes a long time to train on whole dataset, so this parameter controls dataset split on max amount of elements')
                 train_max_size = gr.Number(value=75, minimum=3, label='Max sentence size', info='Max number of tokens model can generate')
                 train_batch_size = gr.Slider(value=64, minimum=1, maximum=1024, label='Batch size', info='Number of sentences in one batch')
                 train_n_epoch = gr.Slider(minimum=1, maximum=100, value=8, label='Number of epochs', info='Number of epochs to train model on')
-                train_device = gr.Radio(['auto', 'cuda', 'cpu'], label='auto', show_label=True)
-                save_model_name = gr.Textbox(value='seq_to_seq_model.pt', label='Checkpoint name', info='Name of model checkpoint file')
+                train_device = gr.Radio(['auto', 'cuda', 'cpu'], value='auto', label='Chose device to move model to', info='Device on which model will be trained on (cuda highly recommended)', show_label=True)
+                save_model_name = gr.Textbox(value='seq_to_seq_model    .pt', label='Checkpoint name', info='Name of model checkpoint file')
             with gr.Column():
                 train_load_output = gr.Text(label='Status of training', max_lines=200)
         load_btn = gr.Button('Start training')
@@ -113,7 +119,30 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
 
     # Inference tab
     with gr.Tab("Inference"):
-        pass
+        gr.Markdown('Tab to check how model works yourself!')
+        with gr.Row():
+            with gr.Column():
+                inf_text = gr.Textbox(value='Your toxic message here', label='Textbox for inference messages', info='Textbox for 1 message to inference')
+                inf_dataset = gr.Dropdown(GradioReaders.read_dir_type('intermediate'), label="Chose dataset model is based on", info="Chose what dataset model was trained on", interactive=True)
+                inf_vocab = gr.Dropdown([], label='Chose vocab', info='Chose what vocab model was trained on', interactive=True)
+                inf_checkpoints = gr.Dropdown(
+                    GradioReaders.checkpoint_readers('seq_to_seq'),
+                    label='Checkpoints', info='Checkpoint to load model from',
+                    interactive=True
+                )
+                update_inf_btn = gr.Button('Refresh dropdown lists')
+                inf_spacy_tokenizer = gr.Textbox(value='en_core_web_sm', label='Spacy tokenizer', info='Tokenizer from spacy python library to use')
+                inf_max_size = gr.Number(value=75, minimum=3, label='Max sentence size', info='Max number of tokens model can generate')
+                inf_device = gr.Radio(['auto', 'cuda', 'cpu'], value='auto', label='Chose device to move model to', info='Device on which model will be inferenced on (cuda highly recommended)', show_label=True)
+            with gr.Column():
+                inf_output = gr.Text(label='status of inference')
+        inf_btn = gr.Button('Start inference')
+        inf_btn.click(predict_model.inference,
+                       inputs=[inf_text, inf_checkpoints, inf_dataset, inf_vocab, inf_spacy_tokenizer, inf_max_size, inf_device],
+                       outputs=[inf_output])
+        update_inf_btn.click(update_inf_checkpoint_dropdown, inputs=[], outputs=[inf_dataset, inf_checkpoints])
+        inf_dataset.change(update_vocab, inputs=[inf_dataset], outputs=[inf_vocab])
+
 
 demo.queue()
 if __name__ == '__main__':
