@@ -33,18 +33,9 @@ def update_inf_checkpoint_dropdown(*args, **kwargs):
     return intermediate_choices, checkpoint_choices
 
 
-# def update_intermediate_dropdown(*args, **kwargs):
-#     new_choices = gr.update(choices=GradioReaders.read_dir_type('intermediate'))
-#     return new_choices
-
-
-# def update_vocab_dropdown(*args, **kwargs):
-#     new_choices =
-
-
 # Preprocess dataset tabs
 with gr.Blocks(theme=gr.themes.Default()) as demo:
-    gr.Markdown("Top text (idk what to add here)")
+    gr.Markdown("Detox **seq-to-seq** pipeline - Made by @cutefluffyfox")
 
     # preprocessing tab
     with gr.Tab("Preprocess dataset"):
@@ -56,20 +47,20 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 zip_file = gr.File()
             with gr.Column():
                 zip_output = gr.Text(label='Status of unzip')
-        zip_btn = gr.Button("LoadData archive")
+        zip_btn = gr.Button("LoadData archive", variant='primary')
         zip_btn.click(parse_zip.download_dataset_from_zip, inputs=[zip_file], outputs=[zip_output])
 
         # split dataset by toxicity
         gr.Markdown('Split dataset by toxicity')
         with gr.Row():
             with gr.Column():
-                update_raw_btn = gr.Button('Refresh dataset list')
                 raw_dataset = gr.Dropdown(GradioReaders.read_dir_type('raw'), label="Chose dataset", info="Chose what dataset to preprocess", interactive=True)
+                update_raw_btn = gr.Button('Refresh dataset list')
                 tox_diff = gr.Slider(0, 1, value=0.75, label="Toxicity difference", info="Threshold on minimum toxicity difference")
                 sim_rate = gr.Slider(0, 1, value=0.65, label="Similarity rate", info="Threshold on minimum similarity rate")
             with gr.Column():
                 split_output = gr.Text(label='Status of split')
-        split_btn = gr.Button('Split by toxicity')
+        split_btn = gr.Button('Split by toxicity', variant='primary')
         split_btn.click(split_by_toxisity.split_by_toxicity, inputs=[raw_dataset, tox_diff, sim_rate], outputs=[split_output])
         update_raw_btn.click(update_raw_dropdown, inputs=[], outputs=[raw_dataset])
 
@@ -80,7 +71,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 spacy_tokenizer = gr.Textbox(value='en_core_web_sm', label='Spacy tokenizer', info='Tokenizer from spacy python library to use')
             with gr.Column():
                 tokenize_output = gr.Text(label='Status of tokenization')
-        tokenize_btn = gr.Button('Tokenize data')
+        tokenize_btn = gr.Button('Tokenize data', variant='primary')
         tokenize_btn.click(tokenize_dataset.tokenize_dataset, inputs=[raw_dataset, spacy_tokenizer], outputs=[tokenize_output])
 
         # Create vocab
@@ -90,7 +81,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 min_freq_numb = gr.Slider(value=10, minimum=0, maximum=1000, label='Frequency threshold', info='Minimum amount of word occurences in the whole dataset in order to be present in vocab')
             with gr.Column():
                 vocab_output = gr.Text(label='Status of counter/vocab')
-        vocab_btn = gr.Button('Generate vocab')
+        vocab_btn = gr.Button('Generate vocab', variant='primary')
         vocab_btn.click(make_data_vocab.create_and_save_vocab, inputs=[raw_dataset, min_freq_numb], outputs=[vocab_output])
 
     # Training tab
@@ -112,7 +103,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 save_model_name = gr.Textbox(value='seq_to_seq_model    .pt', label='Checkpoint name', info='Name of model checkpoint file')
             with gr.Column():
                 train_load_output = gr.Text(label='Status of training', max_lines=200)
-        load_btn = gr.Button('Start training')
+        load_btn = gr.Button('Start training', variant='primary')
         load_btn.click(train_model.train_validate_for_n_epochs, inputs=[train_dataset, train_vocab, train_size, train_dataset_split, train_max_size, train_batch_size, train_n_epoch, train_device, train_checkpoints, save_model_name], outputs=[train_load_output])
         update_train_btn.click(update_intermediate_checkpoint_dropdown, inputs=[], outputs=[train_dataset, train_checkpoints])
         train_dataset.change(update_vocab, inputs=[train_dataset], outputs=[train_vocab])
@@ -136,7 +127,7 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
                 inf_device = gr.Radio(['auto', 'cuda', 'cpu'], value='auto', label='Chose device to move model to', info='Device on which model will be inferenced on (cuda highly recommended)', show_label=True)
             with gr.Column():
                 inf_output = gr.Text(label='status of inference')
-        inf_btn = gr.Button('Start inference')
+        inf_btn = gr.Button('Start inference', variant='primary')
         inf_btn.click(predict_model.inference,
                        inputs=[inf_text, inf_checkpoints, inf_dataset, inf_vocab, inf_spacy_tokenizer, inf_max_size, inf_device],
                        outputs=[inf_output])
