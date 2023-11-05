@@ -123,7 +123,9 @@ def train_validate_for_n_epochs(dataset, vocab_file, train_size, dataset_split, 
     best_valid_loss = float('inf')
     output_message = "Starting training\n\n"
 
-    model_saver = path_manager.SaveModelCheckpoint('seq_to_seq')
+    checkpoint_model_saver = path_manager.SaveModelCheckpoint('seq_to_seq')
+    models_model_saver = path_manager.SaveModelCheckpoint('seq_to_seq', save_file_name.rstrip('.pt'), dir_type='models')
+    models_model_saver.save_vocab(vocab, vocab_file)
 
     for epoch in progress.tqdm(range(n_epoch), desc='Starting new epoch'):
         train_loss = train(model, train_dataloader, optimizer, criterion, 2, device, progress)
@@ -137,7 +139,8 @@ def train_validate_for_n_epochs(dataset, vocab_file, train_size, dataset_split, 
             output_message += f'!! New best valid_loss found, saving model to `{save_file_name}` on epoch {epoch + 1}\n\n'
             best_valid_loss = valid_loss
 
-            model_saver.save_pytorch(model, save_file_name)
+            checkpoint_model_saver.save_pytorch(model, save_file_name)
+            models_model_saver.save_pytorch(model, save_file_name)
 
     output_message += f'Training for {n_epoch} finished successfully\n'
     return output_message

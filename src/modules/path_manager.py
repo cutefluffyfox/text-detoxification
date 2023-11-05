@@ -63,10 +63,10 @@ class LoadData(Loader):
 
 
 class LoadModelCheckpoint(Loader):
-    def __init__(self, model_type: str, *extras):
+    def __init__(self, model_type: str, *extras, dir_type: str = 'checkpoints'):
         self.model_type = model_type
         self.extras = extras
-        self.dir = os.path.join(os.getcwd(), 'checkpoints', model_type, *extras)
+        self.dir = os.path.join(os.getcwd(), dir_type, model_type, *extras)
 
     def load_pytorch(self, model_name: str):
         return torch.load(os.path.join(self.dir, model_name))
@@ -76,14 +76,17 @@ class LoadModelCheckpoint(Loader):
 
 
 class SaveModelCheckpoint(Saver):
-    def __init__(self, model_type: str, *extras):
+    def __init__(self, model_type: str, *extras, dir_type: str = 'checkpoints'):
         self.model_type = model_type
         self.extras = extras
-        self.dir = os.path.join(os.getcwd(), 'checkpoints', model_type, *extras)
+        self.dir = os.path.join(os.getcwd(), dir_type, model_type, *extras)
         os.makedirs(self.dir, exist_ok=True)
 
     def save_pytorch(self, model, model_name: str):
         torch.save(model, os.path.join(self.dir, model_name))
+
+    def save_vocab(self, vocab_file: Vocab, file_name: str):
+        torch.save(vocab_file, os.path.join(self.dir, file_name))
 
 
 class GradioReaders:
@@ -98,8 +101,8 @@ class GradioReaders:
         return os.listdir(full_path) if os.path.exists(full_path) else []
 
     @staticmethod
-    def checkpoint_readers(model_type: str):
-        full_path = os.path.join(os.getcwd(), 'checkpoints', model_type)
+    def checkpoint_readers(model_type: str, dir_type: str = 'checkpoints'):
+        full_path = os.path.join(os.getcwd(), dir_type, model_type)
         return os.listdir(full_path) if os.path.exists(full_path) else []
 
 

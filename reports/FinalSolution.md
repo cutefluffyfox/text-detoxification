@@ -178,6 +178,8 @@ tokenizer and max sentence size the same as in training/preprocessing steps. Cho
 Everything that really matters is to write any message in 'Textbox for inference messages' and 
 click 'Start inference' button
 
+![img_1.png](figures/inference_example.png)
+
 
 # Validation
 
