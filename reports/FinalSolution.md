@@ -20,6 +20,7 @@ This report will rely on you using web interface. Please make sure not to skip t
   * [seq-to-seq model architecture](#seq-to-seq-architecture)
   * [Train with web ui](#training-with-web-ui)
 * [Inference](#inference)
+* [Validation](#validation)
 * [Credits](#credits)
 
 
@@ -41,6 +42,7 @@ When you are done you can continue.
 To start please download all required libraries and spacy tokenizer:
 ```shell
 pip install -r requirements.txt
+python -m spacy download en
 python -m spacy download en_core_web_sm
 ```
 
@@ -176,7 +178,34 @@ tokenizer and max sentence size the same as in training/preprocessing steps. Cho
 Everything that really matters is to write any message in 'Textbox for inference messages' and 
 click 'Start inference' button
 
-![img.png](figures/inference_example.png)
+
+# Validation
+
+Validation of model is not present in web interface, however you can check [ModelExploration](https://github.com/cutefluffyfox/text-detoxification/blob/main/notebooks/ModelExploration.ipynb)
+if you are interested in code. But I can show the results on random subset of `384` sentences:
+
+| Predicted/Expected scores                           |
+|-----------------------------------------------------|
+| ![img.png](figures/seq_to_seq_predicted_scores.png) |
+
+Mean/Std statistics for each step:
+
+| Type     | mean   | std    |
+|----------|--------|--------|
+| Initial  | 0.9668 | 0.0484 |
+| Resulted | 0.0341 | 0.138  |
+| Expected | 0.0204 | 0.0391 |
+
+
+We can see that our seq-to-seq model removed most toxicity from sentences. Meaning
+our DL approach can provide better results in general. The main downside is the speed of
+such solution, as I was only able to get 300 samples in a reasonable amount of time, when
+compared to Baseline whole 30000 samples. 
+
+Also, we just reduce toxicity score, when in practice we also need to check meaning similarity
+as it was defined in the raw dataset. Still, we can see that DL solution tends to be superior
+to baseline one, resulting in significant improvement from 50% success to 90%+ one.
+
 
 # Credits
 Created by Polina Zelenskaya\

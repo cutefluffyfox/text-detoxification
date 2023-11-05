@@ -24,6 +24,11 @@
   * [Solution](#solution)
   * [Validation](#validation)
   * [Final comments](#final-comments)
+* [Seq-to-Seq solution](#seq-to-seq-solution)
+  * [Model architecture](#seq-to-seq-architecture)
+  * [How to train](#how-to-train-seq-to-seq)
+  * [Validation](#validation-1)
+  * [Final comments](#final-comments-1)
 * [Credits](#credits)
 
 
@@ -789,6 +794,95 @@ notebook). For such reason, we can test hypothesis that deep-learning model with
 memory cells can reduce toxicity even lower. But for now, we achieved mean 
 toxicity score drop from 0.9665 to 0.4864 (judging by 
 `SkolkovoInstitute/roberta_toxicity_classifier`)
+
+# Seq-to-Seq solution
+In this section I will explain how model is designed and idea how to train it. But
+I wouldn't get into details that much. Full explanation of solution is present in `FinalSolution.md`
+file.
+
+### Seq-to-Seq architecture
+
+Let's discuss what model architecture we are going to use.
+I decided to write my encoder/decoder/attention layers from scratch, so I based my 
+solution on [this tutorial](https://github.com/bentrevett/pytorch-seq2seq/blob/master/3%20-%20Neural%20Machine%20Translation%20by%20Jointly%20Learning%20to%20Align%20and%20Translate.ipynb).
+Final architecture I went with is:
+
+```
+DSkBart(
+  (attention): Attention(
+    (attn): Linear(in_features=768, out_features=256, bias=True)
+    (v): Linear(in_features=256, out_features=1, bias=False)
+  )
+  (encoder): Encoder(
+    (embedding): Embedding(8247, 128)
+    (rnn): GRU(128, 256, bidirectional=True)
+    (fc): Linear(in_features=512, out_features=256, bias=True)
+    (dropout): Dropout(p=0.5, inplace=False)
+  )
+  (decoder): Decoder(
+    (attention): Attention(
+      (attn): Linear(in_features=768, out_features=256, bias=True)
+      (v): Linear(in_features=256, out_features=1, bias=False)
+    )
+    (embedding): Embedding(8247, 128)
+    (rnn): GRU(640, 256)
+    (fc_out): Linear(in_features=896, out_features=8247, bias=True)
+    (dropout): Dropout(p=0.5, inplace=False)
+  )
+)
+```
+
+Worth mentioning that `8247` is a vocab size, and it can change depending on your dataset
+preprocessing thresholds and dataset itself. For me this vocab size resulted to be ideal
+as it provided reasonable amount of training parameters and model size to be trainable within
+the day (I spend 11 hours total training) and light enough to fit into my GPU memory (NVIDIA 2080 Super mobile).
+
+In this architecture I use bidirectional GRU layers with embedding dimension of 128 (same memory problem)
+and high dropout rate (not 0.1 defined in data exploration). This is due to recommendations from 
+bentrevett's tutorial.
+
+Model initialized from `mean=0` and `std=0.01` to make simplified version of model. 
+Total number of trainable parameters is `11,119,799`.
+
+### How to train seq-to-seq
+
+Idea is pretty simple, we give toxic messages to model, and model should make 1-1 copy
+of expected non-toxic message from the dataset. As we are aiming for 1-1 copy, it's fair
+to use `CrossEntropyLoss` as loss function (that's the one I am using).
+
+As well as model is simple enough, I use `Adam` optimizer.
+
+
+### Validation
+
+o validate model I will use the same approach as in Baseline model (check [Baseline validation](#validation) for more information). 
+Main idea is to get toxic scores for each message and then calculate basic 
+statistics (such as mean/std) to identify how low toxicity becomes after model 
+predictions. If DL model works, we will see decrease in such values compared to 
+initial one.
+
+| Predicted/Expected scores                           |
+|-----------------------------------------------------|
+| ![img.png](figures/seq_to_seq_predicted_scores.png) |
+
+Mean/Std statistics for each step:
+
+| Type     | mean   | std    |
+|----------|--------|--------|
+| Initial  | 0.9668 | 0.0484 |
+| Resulted | 0.0341 | 0.138  |
+| Expected | 0.0204 | 0.0391 |  
+
+
+### Final comments
+We can see that our seq-to-seq model removed most toxicity from sentences. Meaning
+our DL approach can provide better results in general. The main downside is the speed of
+such solution, as I was only able to get 300 samples in a reasonable amount of time, when
+compared to Baseline whole 30000 samples. 
+
+Also, we just reduce toxicity score, when in practice we also need to check meaning similarity
+as it was defined in the raw dataset. Still, we can see that DL solution tends to be superior
+to baseline one, resulting in significant improvement from 50% success to 90%+ one.
 
 
 # Credits
